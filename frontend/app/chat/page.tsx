@@ -1,16 +1,15 @@
 import Pageheader from "@/components/common/Pageheader";
+import ChatWindow from "@/components/chat/ChatWindow";
 
 export default function ChatPage() {
   return (
     <div>
       <Pageheader
         title="AI Assistant"
-        description="Ask questions and review grounded enterprise knowledge."
+        description="Ask questions, review grounded answers, and inspect their sources."
       />
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6">
-        Chat workspace coming next.
-      </div>
+      <ChatWindow />
     </div>
   );
 }
