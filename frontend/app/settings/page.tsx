@@ -1,4 +1,5 @@
 import Pageheader from "@/components/common/Pageheader";
+import SettingsPageContent from "@/components/settings/settingspage";
 
 export default function SettingsPage() {
   return (
@@ -8,8 +9,8 @@ export default function SettingsPage() {
         description="Manage your account and application preferences."
       />
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6">
-        Settings coming next.
+      <div className="mt-6">
+        <SettingsPageContent />
       </div>
     </div>
   );
