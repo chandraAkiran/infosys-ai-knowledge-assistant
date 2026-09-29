@@ -7,6 +7,7 @@ from models.base import Base
 
 
 class User(Base):
+
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(
@@ -23,6 +24,11 @@ class User(Base):
     )
 
     full_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    password_hash: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
     )
