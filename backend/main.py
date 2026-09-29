@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 
+from config.db_init import initialize_tables
 from routes.auth_routes import router as auth_router
 from routes.user_routes import router as user_router
 
+initialize_tables()
 
 app = FastAPI(
     title="Infosys AI Knowledge Assistant",
