@@ -9,6 +9,15 @@ class UserCreate(BaseModel):
     password: str
 
 
+class UserRoleUpdate(BaseModel):
+    role: str
+    department: str
+
+
+class UserStatusUpdate(BaseModel):
+    is_active: bool
+
+
 class UserResponse(BaseModel):
     id: int
     email: EmailStr

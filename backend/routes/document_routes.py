@@ -3,7 +3,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from auth.dependencies import get_current_user
+from auth.dependencies import get_current_user, require_permission
 from config.db_session import get_db
 from schemas.document_schema import DocumentResponse
 from services.document_service import (
@@ -15,10 +15,7 @@ from services.ingestion_service import ingest_document
 from services.upload_service import save_uploaded_file
 
 
-router = APIRouter(
-    prefix="/documents",
-    tags=["Documents"],
-)
+router = APIRouter(prefix="/documents", tags=["Documents"])
 
 
 @router.post("/upload", response_model=DocumentResponse)
@@ -30,7 +27,7 @@ def upload_document(
     source: str = Form(...),
     effective_date: date | None = Form(None),
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(require_permission("manage_documents")),
 ):
     if not file.filename:
         raise HTTPException(
@@ -83,7 +80,7 @@ def get_document(
 def index_document(
     document_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(require_permission("manage_documents")),
 ):
     try:
         indexed_count = ingest_document(
@@ -103,8 +100,8 @@ def index_document(
             detail=str(error),
         )
 
-    except Exception as error:
+    except Exception:
         raise HTTPException(
             status_code=500,
-            detail=f"Document indexing failed: {str(error)}",
+            detail="Document indexing failed.",
         )

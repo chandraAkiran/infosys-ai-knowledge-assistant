@@ -28,6 +28,17 @@ def get_user_by_id(
     )
 
 
+def get_users(
+    db: Session,
+) -> list[User]:
+
+    return (
+        db.query(User)
+        .order_by(User.created_at.desc())
+        .all()
+    )
+
+
 def create_user(
     db: Session,
     email: str,
@@ -43,7 +54,9 @@ def create_user(
     )
 
     if existing_user:
-        raise ValueError("User with this email already exists.")
+        raise ValueError(
+            "User with this email already exists."
+        )
 
     user = User(
         email=email,
@@ -51,13 +64,56 @@ def create_user(
         role=role,
         department=department,
         is_active=True,
+        password_hash=hash_password(password),
     )
 
-    # Password hashing will be connected to the
-    # user persistence model in the next database step.
-    user.password_hash = hash_password(password)
-
     db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return user
+
+
+def update_user_role(
+    db: Session,
+    user_id: int,
+    role: str,
+    department: str,
+) -> User | None:
+
+    user = get_user_by_id(
+        db,
+        user_id,
+    )
+
+    if user is None:
+        return None
+
+    user.role = role
+    user.department = department
+
+    db.commit()
+    db.refresh(user)
+
+    return user
+
+
+def update_user_status(
+    db: Session,
+    user_id: int,
+    is_active: bool,
+) -> User | None:
+
+    user = get_user_by_id(
+        db,
+        user_id,
+    )
+
+    if user is None:
+        return None
+
+    user.is_active = is_active
+
     db.commit()
     db.refresh(user)
 
