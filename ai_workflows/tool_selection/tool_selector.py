@@ -3,8 +3,8 @@ from typing import Dict
 
 class ToolSelector:
     """
-    Selects the appropriate knowledge source/tool
-    for a user query.
+    Selects the appropriate knowledge source or
+    enterprise tool for a classified query.
     """
 
     @staticmethod
@@ -21,6 +21,21 @@ class ToolSelector:
             "department",
             "unknown",
         )
+
+        # -------------------------------------------------
+        # MCP incident-status tool
+        # -------------------------------------------------
+
+        if intent == "incident_status_lookup":
+
+            return {
+                "tool": "incident_status",
+                "department": department,
+                "reason": (
+                    "Query requires live incident information "
+                    "from an enterprise connector."
+                ),
+            }
 
         # -------------------------------------------------
         # Knowledge/document questions
@@ -41,7 +56,7 @@ class ToolSelector:
             }
 
         # -------------------------------------------------
-        # Future MCP/tool-based questions
+        # Default
         # -------------------------------------------------
 
         return {

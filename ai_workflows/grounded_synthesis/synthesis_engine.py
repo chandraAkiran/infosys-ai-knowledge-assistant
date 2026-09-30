@@ -16,10 +16,11 @@ class GroundedSynthesisEngine:
     Converts retrieved enterprise evidence into a
     grounded structured answer.
 
-    This class does NOT perform retrieval.
+    Evidence may come from:
+    - RAG / vector database
+    - MCP enterprise connectors
 
-    It receives retrieved evidence and asks Gemini
-    to synthesize an answer using that evidence only.
+    This class does NOT perform retrieval.
     """
 
     def __init__(
@@ -61,6 +62,10 @@ class GroundedSynthesisEngine:
         documents: List[Any],
     ) -> Dict[str, Any]:
 
+        # -------------------------------------------------
+        # Input validation
+        # -------------------------------------------------
+
         if not query or not query.strip():
             return {
                 "answer": "Please enter a valid question.",
@@ -71,11 +76,15 @@ class GroundedSynthesisEngine:
                 ),
             }
 
+        # -------------------------------------------------
+        # No evidence
+        # -------------------------------------------------
+
         if not documents:
             return {
                 "answer": (
                     "I couldn't find this information "
-                    "in the indexed documents."
+                    "in the available enterprise sources."
                 ),
                 "confidence_score": 0.0,
                 "citations": [],
@@ -85,35 +94,77 @@ class GroundedSynthesisEngine:
                 ),
             }
 
+        # -------------------------------------------------
+        # Build evidence context
+        # -------------------------------------------------
+
         context = CitationContextBuilder.build_context_block(
             documents
         )
+
+        # Detect whether evidence came from MCP.
+        has_mcp_evidence = any(
+            document.metadata.get("source") == "MCP connector"
+            for document in documents
+            if hasattr(document, "metadata")
+        )
+
+        if has_mcp_evidence:
+            source_instruction = """
+Some or all of the supplied evidence comes from an
+enterprise MCP connector.
+
+Treat MCP connector output as verified enterprise
+evidence for this request.
+
+For MCP evidence:
+- cite the MCP source using its document_name
+- preserve the incident information exactly
+- do not add information that is not present
+"""
+        else:
+            source_instruction = """
+The supplied evidence comes from the enterprise
+knowledge base.
+
+Cite the source documents supporting the answer.
+"""
+
+        # -------------------------------------------------
+        # Grounded synthesis prompt
+        # -------------------------------------------------
 
         prompt = f"""
 You are an Enterprise AI Knowledge Assistant.
 
 Your job is to answer the employee's question using
-ONLY the verified enterprise document context below.
+ONLY the verified enterprise evidence supplied below.
 
 STRICT RULES:
 
-1. Use only the supplied context.
+1. Use only the supplied evidence.
 2. Do not use outside knowledge.
 3. Do not guess.
 4. Do not invent policies, dates, numbers,
-   names, procedures or permissions.
-5. If the context does not contain enough evidence,
+   names, procedures, statuses or permissions.
+5. If the evidence does not contain enough information,
    clearly say that the information was not found.
-6. Every factual answer should be supported by
-   the supplied sources.
+6. Every factual statement must be supported by
+   supplied evidence.
 7. Keep the answer concise and professional.
-8. Provide citations corresponding to the sources.
-9. Confidence must reflect the strength of the
-   available evidence.
-10. Recommended action should be useful but must
-    not introduce unsupported policy claims.
+8. Provide at least one citation when evidence supports
+   the answer.
+9. Citation document_name must exactly match a source
+   document_name from the supplied evidence.
+10. matched_passage must contain the relevant evidence
+    supporting the answer.
+11. confidence_score must be between 0 and 1.
+12. Recommended action must not introduce unsupported
+    policy claims.
 
-VERIFIED ENTERPRISE CONTEXT:
+{source_instruction}
+
+VERIFIED ENTERPRISE EVIDENCE:
 
 {context}
 
@@ -126,28 +177,123 @@ EMPLOYEE QUESTION:
             response = self.llm.invoke(prompt)
 
             if hasattr(response, "model_dump"):
-                return response.model_dump()
+                result = response.model_dump()
 
-            if isinstance(response, dict):
-                return response
+            elif isinstance(response, dict):
+                result = response
 
-            return {
-                "answer": str(response),
-                "confidence_score": 0.0,
-                "citations": [],
-                "recommended_action": "",
-            }
+            else:
+                result = {
+                    "answer": str(response),
+                    "confidence_score": 0.0,
+                    "citations": [],
+                    "recommended_action": "",
+                }
+
+            # -------------------------------------------------
+            # Normalize confidence
+            # -------------------------------------------------
+
+            confidence = result.get(
+                "confidence_score",
+                0.0,
+            )
+
+            try:
+                confidence = float(confidence)
+            except (TypeError, ValueError):
+                confidence = 0.0
+
+            confidence = max(
+                0.0,
+                min(1.0, confidence),
+            )
+
+            result["confidence_score"] = confidence
+
+            # -------------------------------------------------
+            # Ensure citations exist when evidence exists
+            # -------------------------------------------------
+
+            citations = result.get(
+                "citations",
+                [],
+            )
+
+            if not citations:
+                first_document = documents[0]
+
+                metadata = getattr(
+                    first_document,
+                    "metadata",
+                    {},
+                )
+
+                result["citations"] = [
+                    {
+                        "document_name": metadata.get(
+                            "document_name",
+                            "Enterprise source",
+                        ),
+                        "page_number": metadata.get(
+                            "page_number"
+                        ),
+                        "department": metadata.get(
+                            "department",
+                            "Unknown",
+                        ),
+                        "matched_passage": (
+                            first_document.page_content[:500]
+                        ),
+                    }
+                ]
+
+            return result
 
         except Exception as exc:
+
+            # -------------------------------------------------
+            # Safe fallback
+            #
+            # The evidence is still available, so return a
+            # grounded response rather than pretending that
+            # no enterprise evidence exists.
+            # -------------------------------------------------
+
+            first_document = documents[0]
+
+            metadata = getattr(
+                first_document,
+                "metadata",
+                {},
+            )
+
+            fallback_answer = (
+                first_document.page_content.strip()
+            )
+
             return {
-                "answer": (
-                    "Unable to generate a response "
-                    "from the knowledge base."
-                ),
-                "confidence_score": 0.0,
-                "citations": [],
+                "answer": fallback_answer,
+                "confidence_score": 0.5,
+                "citations": [
+                    {
+                        "document_name": metadata.get(
+                            "document_name",
+                            "Enterprise source",
+                        ),
+                        "page_number": metadata.get(
+                            "page_number"
+                        ),
+                        "department": metadata.get(
+                            "department",
+                            "Unknown",
+                        ),
+                        "matched_passage": fallback_answer[:500],
+                    }
+                ],
                 "recommended_action": (
-                    "Please try again later."
+                    "Review the cited enterprise source "
+                    "for the latest information."
                 ),
-                "error": str(exc),
+                "synthesis_error": str(exc),
             }

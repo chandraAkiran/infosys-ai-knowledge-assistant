@@ -8,10 +8,9 @@ class QueryClassifier:
     Determines the likely intent, department and
     preferred knowledge source for an employee query.
 
-    This intentionally uses simple rules first.
-    We can replace or enhance this with an LLM-based
-    classifier later without changing the rest of
-    the workflow.
+    MCP-specific intents are detected here so that
+    the tool-selection layer can route those queries
+    to the appropriate enterprise connector.
     """
 
     DEPARTMENT_KEYWORDS = {
@@ -95,6 +94,53 @@ class QueryClassifier:
 
             if detected_department != "unknown":
                 break
+
+        # -------------------------------------------------
+        # MCP incident-status query
+        # -------------------------------------------------
+
+        incident_status_phrases = [
+            "incident status",
+            "status of incident",
+            "status for incident",
+            "incident update",
+            "incident updates",
+            "current incident",
+            "current status",
+        ]
+
+        if any(
+            phrase in query_lower
+            for phrase in incident_status_phrases
+        ):
+            return {
+                "intent": "incident_status_lookup",
+                "department": "Delivery Operations",
+                "source": "mcp",
+            }
+
+        # Also detect explicit incident IDs.
+        if (
+            "inc-" in query_lower
+            and "incident" in query_lower
+            and any(
+                word in query_lower
+                for word in [
+                    "status",
+                    "update",
+                    "state",
+                ]
+            )
+        ):
+            return {
+                "intent": "incident_status_lookup",
+                "department": "Delivery Operations",
+                "source": "mcp",
+            }
+
+        # -------------------------------------------------
+        # Normal enterprise knowledge queries
+        # -------------------------------------------------
 
         if any(
             word in query_lower
