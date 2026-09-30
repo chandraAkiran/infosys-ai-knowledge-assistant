@@ -25,3 +25,5 @@ Thumbs.db
 
 # Local vector database
 vector_db/
+
+uploads/
