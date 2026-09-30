@@ -17,8 +17,9 @@ class GroundedSynthesisEngine:
     grounded structured answer.
 
     This class does NOT perform retrieval.
-    It receives evidence and asks Gemini to
-    synthesize an answer from that evidence only.
+
+    It receives retrieved evidence and asks Gemini
+    to synthesize an answer using that evidence only.
     """
 
     def __init__(
@@ -26,7 +27,6 @@ class GroundedSynthesisEngine:
         google_api_key: Optional[str] = None,
         model_name: Optional[str] = None,
     ):
-
         api_key = (
             google_api_key
             or os.getenv("GEMINI_API_KEY")
@@ -41,7 +41,7 @@ class GroundedSynthesisEngine:
 
         model_name = model_name or os.getenv(
             "LLM_MODEL",
-            "gemini-2.5-flash",
+            "gemini-3.8-flash",
         )
 
         self.llm = (
@@ -62,19 +62,16 @@ class GroundedSynthesisEngine:
     ) -> Dict[str, Any]:
 
         if not query or not query.strip():
-
             return {
                 "answer": "Please enter a valid question.",
                 "confidence_score": 0.0,
                 "citations": [],
                 "recommended_action": (
-                    "Enter a question about "
-                    "enterprise knowledge."
+                    "Enter a question about enterprise knowledge."
                 ),
             }
 
         if not documents:
-
             return {
                 "answer": (
                     "I couldn't find this information "
@@ -83,15 +80,13 @@ class GroundedSynthesisEngine:
                 "confidence_score": 0.0,
                 "citations": [],
                 "recommended_action": (
-                    "Try a more specific question "
-                    "or contact the knowledge owner."
+                    "Try a more specific question or "
+                    "contact the knowledge owner."
                 ),
             }
 
-        context = (
-            CitationContextBuilder.build_context_block(
-                documents
-            )
+        context = CitationContextBuilder.build_context_block(
+            documents
         )
 
         prompt = f"""
@@ -128,7 +123,6 @@ EMPLOYEE QUESTION:
 """
 
         try:
-
             response = self.llm.invoke(prompt)
 
             if hasattr(response, "model_dump"):
@@ -145,7 +139,6 @@ EMPLOYEE QUESTION:
             }
 
         except Exception as exc:
-
             return {
                 "answer": (
                     "Unable to generate a response "

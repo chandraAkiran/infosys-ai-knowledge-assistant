@@ -4,13 +4,13 @@ from pydantic import BaseModel, Field
 
 
 class Citation(BaseModel):
-
     document_name: str = Field(
         description="Name of the source document."
     )
 
-    page_number: int = Field(
-        description="Page number of the source."
+    page_number: int | None = Field(
+        default=None,
+        description="Page number of the source when available."
     )
 
     department: str = Field(
@@ -23,7 +23,6 @@ class Citation(BaseModel):
 
 
 class GroundedResponseSchema(BaseModel):
-
     answer: str = Field(
         description="Answer based only on supplied evidence."
     )
@@ -54,19 +53,18 @@ class CitationContextBuilder:
             docs,
             start=1,
         ):
-
             metadata = doc.metadata
 
             block = (
                 f"[SOURCE {index}]\n"
                 f"Document: "
-                f"{metadata.get('title', 'Unknown')}\n"
+                f"{metadata.get('document_name', 'Unknown')}\n"
                 f"Page: "
-                f"{metadata.get('page_number', 'N/A')}\n"
+                f"{metadata.get('page_number', 'Not available')}\n"
                 f"Department: "
                 f"{metadata.get('department', 'Unknown')}\n"
-                f"Source System: "
-                f"{metadata.get('source_system', 'Unknown')}\n"
+                f"Source: "
+                f"{metadata.get('source', 'Unknown')}\n"
                 f"Content:\n"
                 f"{doc.page_content.strip()}\n"
             )
