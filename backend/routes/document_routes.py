@@ -6,7 +6,12 @@ from sqlalchemy.orm import Session
 from auth.dependencies import get_current_user
 from config.db_session import get_db
 from schemas.document_schema import DocumentResponse
-from services.document_service import create_document, get_document_by_id, get_documents
+from services.document_service import (
+    create_document,
+    get_document_by_id,
+    get_documents,
+)
+from services.ingestion_service import ingest_document
 from services.upload_service import save_uploaded_file
 
 
@@ -72,3 +77,34 @@ def get_document(
         )
 
     return document
+
+
+@router.post("/{document_id}/index")
+def index_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    try:
+        indexed_count = ingest_document(
+            db=db,
+            document_id=document_id,
+        )
+
+        return {
+            "document_id": document_id,
+            "status": "completed",
+            "indexed_chunks": indexed_count,
+        }
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Document indexing failed: {str(error)}",
+        )
