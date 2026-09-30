@@ -6,6 +6,8 @@ from routes.user_routes import router as user_router
 from routes.document_routes import router as document_router
 from routes.retrieval_routes import router as retrieval_router
 from routes.query_routes import router as query_router
+from routes.feedback_routes import router as feedback_router
+from routes.analytics_routes import router as analytics_router
 
 initialize_tables()
 
@@ -21,7 +23,8 @@ app.include_router(user_router)
 app.include_router(document_router)
 app.include_router(retrieval_router)
 app.include_router(query_router)
-
+app.include_router(feedback_router)
+app.include_router(analytics_router)
 
 @app.get("/")
 def root():
