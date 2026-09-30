@@ -2,8 +2,11 @@ import os
 from typing import Any, List, Tuple, Optional
 
 from langchain_chroma import Chroma
-from langchain_google_genai import (
-    GoogleGenerativeAIEmbeddings,
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+from config.vector_db_config import (
+    get_vector_db_path,
+    get_vector_collection_name,
 )
 
 
@@ -12,7 +15,6 @@ class EnterpriseRetriever:
     Handles semantic retrieval from the enterprise
     vector database.
 
-    IMPORTANT:
     This class only retrieves evidence.
 
     It does NOT:
@@ -25,32 +27,32 @@ class EnterpriseRetriever:
     def __init__(
         self,
         vector_db_path: Optional[str] = None,
-        collection_name: str = "documents",
+        collection_name: Optional[str] = None,
         google_api_key: Optional[str] = None,
     ):
 
         api_key = (
             google_api_key
-            or os.getenv("GEMINI_API_KEY")
             or os.getenv("GOOGLE_API_KEY")
+            or os.getenv("GEMINI_API_KEY")
         )
 
         if not api_key:
             raise ValueError(
-                "GEMINI_API_KEY or GOOGLE_API_KEY "
+                "GOOGLE_API_KEY or GEMINI_API_KEY "
                 "is not configured."
             )
 
         if vector_db_path is None:
-            vector_db_path = os.getenv(
-                "CHROMA_DB_PATH",
-                "./vector_db",
-            )
+            vector_db_path = get_vector_db_path()
+
+        if collection_name is None:
+            collection_name = get_vector_collection_name()
 
         self.embeddings = GoogleGenerativeAIEmbeddings(
             model=os.getenv(
                 "EMBEDDING_MODEL",
-                "gemini-embedding-2-preview",
+                "gemini-embedding-2",
             ),
             google_api_key=api_key,
         )
@@ -74,7 +76,6 @@ class EnterpriseRetriever:
         metadata_filter = None
 
         if allowed_departments:
-
             metadata_filter = {
                 "department": {
                     "$in": allowed_departments
