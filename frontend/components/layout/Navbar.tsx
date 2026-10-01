@@ -3,9 +3,25 @@
 import { useState } from "react";
 import Logo from "@/components/common/Logo";
 import ProfileMenu from "@/components/layout/ProfileMenu";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Navbar() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const { user } = useAuth();
+
+  const displayName = user?.full_name || "User";
+
+  const displayRole = user?.role
+    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+    : "Employee";
+
+  const initials =
+    displayName
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "U";
 
   return (
     <header className="relative flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
@@ -14,10 +30,11 @@ export default function Navbar() {
       <div className="relative flex items-center gap-4">
         <div className="hidden text-right sm:block">
           <p className="text-sm font-medium text-slate-900">
-            Pulkit Narang
+            {displayName}
           </p>
+
           <p className="text-xs text-slate-500">
-            Employee
+            {displayRole}
           </p>
         </div>
 
@@ -26,7 +43,7 @@ export default function Navbar() {
           onClick={() => setShowProfileMenu(!showProfileMenu)}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700"
         >
-          PN
+          {initials}
         </button>
 
         {showProfileMenu && (
