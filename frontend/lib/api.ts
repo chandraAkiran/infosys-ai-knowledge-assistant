@@ -1,59 +1,46 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
-interface ApiRequestOptions {
-  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  body?: unknown;
-  token?: string;
-}
+type ApiRequestOptions = RequestInit & {
+  token?: string | null;
+};
 
 export async function apiRequest<T>(
   endpoint: string,
   options: ApiRequestOptions = {}
 ): Promise<T> {
-  const {
-    method = "GET",
-    body,
-    token,
-  } = options;
+  const { token, ...requestOptions } = options;
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
+  const headers = new Headers(requestOptions.headers);
+
+  headers.set("Content-Type", "application/json");
 
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
   const response = await fetch(
     `${API_BASE_URL}${endpoint}`,
     {
-      method,
+      ...requestOptions,
       headers,
-      body: body ? JSON.stringify(body) : undefined,
     }
   );
 
   if (!response.ok) {
-    let errorMessage = "Something went wrong.";
+    let errorMessage = `Request failed with status ${response.status}.`;
 
     try {
       const errorData = await response.json();
 
       if (errorData?.detail) {
         errorMessage = errorData.detail;
-      } else if (errorData?.message) {
-        errorMessage = errorData.message;
       }
     } catch {
-      errorMessage = response.statusText || errorMessage;
+      // Keep the default error message.
     }
 
     throw new Error(errorMessage);
-  }
-
-  if (response.status === 204) {
-    return undefined as T;
   }
 
   return response.json();

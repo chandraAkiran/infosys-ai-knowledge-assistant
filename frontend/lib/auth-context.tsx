@@ -8,6 +8,8 @@ import {
   ReactNode,
 } from "react";
 
+import { apiRequest } from "./api";
+
 interface User {
   name: string;
   email: string;
@@ -15,53 +17,128 @@ interface User {
   department: string;
 }
 
+interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  user_id: number;
+  email: string;
+  role: string;
+}
+
+interface CurrentUserResponse {
+  user_id: number;
+  email: string;
+  role: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => boolean;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
-const DEMO_USER: User = {
-  name: "Pulkit Narang",
-  email: "employee@infosys.com",
-  role: "Employee",
-  department: "Engineering",
-};
-
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("enterprise_user");
+    const token = localStorage.getItem("enterprise_token");
 
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    if (!token) {
+      return;
     }
+
+    async function restoreSession() {
+      try {
+        const currentUser =
+          await apiRequest<CurrentUserResponse>("/users/me", {
+            token,
+          });
+
+        const restoredUser: User = {
+          name: currentUser.email,
+          email: currentUser.email,
+          role: currentUser.role,
+          department: "",
+        };
+
+        setUser(restoredUser);
+
+        localStorage.setItem(
+          "enterprise_user",
+          JSON.stringify(restoredUser)
+        );
+      } catch {
+        localStorage.removeItem("enterprise_token");
+        localStorage.removeItem("enterprise_user");
+        setUser(null);
+      }
+    }
+
+    restoreSession();
   }, []);
 
-  function login(email: string, password: string) {
-    if (
-      email === "employee@infosys.com" &&
-      password === "password123"
-    ) {
-      setUser(DEMO_USER);
+  async function login(
+    email: string,
+    password: string
+  ): Promise<boolean> {
+    try {
+      const response = await apiRequest<LoginResponse>(
+        "/auth/login",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
+
+      localStorage.setItem(
+        "enterprise_token",
+        response.access_token
+      );
+
+      const currentUser =
+        await apiRequest<CurrentUserResponse>("/users/me", {
+          token: response.access_token,
+        });
+
+      const loggedInUser: User = {
+        name: currentUser.email,
+        email: currentUser.email,
+        role: currentUser.role,
+        department: "",
+      };
+
+      setUser(loggedInUser);
+
       localStorage.setItem(
         "enterprise_user",
-        JSON.stringify(DEMO_USER)
+        JSON.stringify(loggedInUser)
       );
 
       return true;
+    } catch {
+      return false;
     }
-
-    return false;
   }
 
   function logout() {
     setUser(null);
+
+    localStorage.removeItem("enterprise_token");
     localStorage.removeItem("enterprise_user");
+
+    window.location.href = "/login";
   }
 
   return (

@@ -13,11 +13,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
     setError("");
 
-    const success = login(email, password);
+    const success = await login(email, password);
 
     if (success) {
       router.push("/dashboard");
@@ -111,10 +113,6 @@ export default function LoginPage() {
           >
             Create account
           </Link>
-        </div>
-
-        <div className="mt-6 rounded-lg bg-slate-50 p-3 text-xs text-slate-500">
-          Demo login: employee@infosys.com / password123
         </div>
       </div>
     </main>
