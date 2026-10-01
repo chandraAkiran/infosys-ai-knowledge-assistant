@@ -16,6 +16,7 @@ interface ChatMessageProps {
   confidence?: string;
   citations?: Citation[];
   onCitationSelect?: (citation: Citation) => void;
+  feedbackQuery?: string;
 }
 
 export default function ChatMessage({
@@ -24,6 +25,7 @@ export default function ChatMessage({
   confidence,
   citations,
   onCitationSelect,
+  feedbackQuery,
 }: ChatMessageProps) {
   const isAssistant = role === "assistant";
 
@@ -51,14 +53,19 @@ export default function ChatMessage({
         </div>
       )}
 
-      {isAssistant && citations && citations.length > 0 && onCitationSelect && (
-        <CitationPanel
-          citations={citations}
-          onSelect={onCitationSelect}
-        />
-      )}
+      {isAssistant &&
+        citations &&
+        citations.length > 0 &&
+        onCitationSelect && (
+          <CitationPanel
+            citations={citations}
+            onSelect={onCitationSelect}
+          />
+        )}
 
-      {isAssistant && <FeedbackControls />}
+      {isAssistant && feedbackQuery && (
+        <FeedbackControls query={feedbackQuery} />
+      )}
     </div>
   );
 }

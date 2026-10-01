@@ -6,7 +6,6 @@ import Chatinput from "./Chatinput";
 import SuggestedPrompt from "./SuggestedPrompt";
 import SourcePreview from "@/components/citation/SourcePreview";
 import { apiRequest } from "@/lib/api";
-import { useAuth } from "@/lib/auth-context";
 
 interface Citation {
   id: string;
@@ -32,6 +31,7 @@ interface Message {
   content: string;
   confidence?: string;
   citations?: Citation[];
+  feedbackQuery?: string;
 }
 
 const initialMessage: Message = {
@@ -42,8 +42,6 @@ const initialMessage: Message = {
 };
 
 export default function ChatWindow() {
-  const { user } = useAuth();
-
   const [messages, setMessages] = useState<Message[]>([
     initialMessage,
   ]);
@@ -92,6 +90,7 @@ export default function ChatWindow() {
         content: response.answer,
         confidence: `${confidencePercentage}%`,
         citations: response.citations || [],
+        feedbackQuery: question,
       };
 
       setMessages((current) => [
@@ -157,6 +156,7 @@ export default function ChatWindow() {
             confidence={message.confidence}
             citations={message.citations}
             onCitationSelect={setSelectedSource}
+            feedbackQuery={message.feedbackQuery}
           />
         ))}
 
