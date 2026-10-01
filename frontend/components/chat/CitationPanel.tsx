@@ -23,9 +23,13 @@ export default function CitationPanel({
       </h3>
 
       <div className="space-y-3">
-        {citations.map((citation) => (
+        {citations.map((citation, index) => (
           <button
-            key={citation.id}
+            key={
+              citation.id ||
+              citation.title ||
+              `citation-${index}`
+            }
             type="button"
             onClick={() => onSelect(citation)}
             className="block w-full rounded-lg border border-slate-200 bg-white p-4 text-left transition hover:border-slate-300 hover:shadow-sm"

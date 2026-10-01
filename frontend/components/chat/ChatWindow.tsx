@@ -5,6 +5,8 @@ import ChatMessage from "./ChatMessage";
 import Chatinput from "./Chatinput";
 import SuggestedPrompt from "./SuggestedPrompt";
 import SourcePreview from "@/components/citation/SourcePreview";
+import { apiRequest } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 
 interface Citation {
   id: string;
@@ -15,6 +17,15 @@ interface Citation {
   content: string;
 }
 
+interface QueryResponse {
+  answer: string;
+  confidence_score: number;
+  citations: Citation[];
+  recommended_action: string;
+  validation: Record<string, unknown>;
+  workflow: Record<string, unknown>;
+}
+
 interface Message {
   id: number;
   role: "user" | "assistant";
@@ -22,29 +33,6 @@ interface Message {
   confidence?: string;
   citations?: Citation[];
 }
-
-const sampleCitations: Citation[] = [
-  {
-    id: "source-1",
-    title: "Infosys Severity 1 Incident Escalation SOP",
-    department: "Engineering",
-    page: "Page 4",
-    snippet:
-      "Severity 1 incidents require immediate escalation to the incident commander and designated support teams.",
-    content:
-      "For a Severity 1 incident, the incident commander should be notified immediately. The designated support teams must be engaged according to the escalation matrix. Incident status should be communicated through the approved incident management process.",
-  },
-  {
-    id: "source-2",
-    title: "Infosys Microservices Architecture Specification",
-    department: "Engineering",
-    page: "Page 12",
-    snippet:
-      "The architecture guide describes service ownership and operational responsibilities.",
-    content:
-      "Each service should have clear ownership, documented operational responsibilities, and defined escalation paths.",
-  },
-];
 
 const initialMessage: Message = {
   id: 1,
@@ -54,6 +42,8 @@ const initialMessage: Message = {
 };
 
 export default function ChatWindow() {
+  const { user } = useAuth();
+
   const [messages, setMessages] = useState<Message[]>([
     initialMessage,
   ]);
@@ -63,7 +53,7 @@ export default function ChatWindow() {
   const [selectedSource, setSelectedSource] =
     useState<Citation | null>(null);
 
-  function handleQuestion(question: string) {
+  async function handleQuestion(question: string) {
     const userMessage: Message = {
       id: Date.now(),
       role: "user",
@@ -74,23 +64,61 @@ export default function ChatWindow() {
     setLoading(true);
     setSelectedSource(null);
 
-    setTimeout(() => {
+    try {
+      const token = localStorage.getItem("enterprise_token");
+
+      if (!token) {
+        throw new Error("You are not logged in.");
+      }
+
+      const response = await apiRequest<QueryResponse>(
+        "/query",
+        {
+          method: "POST",
+          token,
+          body: JSON.stringify({
+            query: question,
+          }),
+        }
+      );
+
+      const confidencePercentage = Math.round(
+        response.confidence_score * 100
+      );
+
       const assistantMessage: Message = {
         id: Date.now() + 1,
         role: "assistant",
-        content:
-          "Based on the available enterprise sources, a Severity 1 incident should be escalated immediately through the approved incident management process. The incident commander and designated support teams should be engaged according to the escalation procedure.",
-        confidence: "High",
-        citations: sampleCitations,
+        content: response.answer,
+        confidence: `${confidencePercentage}%`,
+        citations: response.citations || [],
       };
 
       setMessages((current) => [
         ...current,
         assistantMessage,
       ]);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while processing your question.";
 
+      const assistantMessage: Message = {
+        id: Date.now() + 1,
+        role: "assistant",
+        content: `I could not process your question. ${errorMessage}`,
+        confidence: "Unavailable",
+        citations: [],
+      };
+
+      setMessages((current) => [
+        ...current,
+        assistantMessage,
+      ]);
+    } finally {
       setLoading(false);
-    }, 700);
+    }
   }
 
   return (
