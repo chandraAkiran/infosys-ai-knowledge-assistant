@@ -15,14 +15,16 @@ class EnterpriseRetriever:
     Handles semantic retrieval from the enterprise
     vector database.
 
-    This class only retrieves evidence.
+    Retrieval uses Chroma distance scores.
 
-    It does NOT:
-    - call the LLM
-    - generate answers
-    - build citations
-    - decide user permissions
+    Lower distance = higher semantic similarity.
+
+    Documents whose distance is above the configured
+    relevance threshold are rejected so unrelated
+    documents are not passed to the LLM.
     """
+
+    DEFAULT_RELEVANCE_THRESHOLD = 0.70
 
     def __init__(
         self,
@@ -30,7 +32,6 @@ class EnterpriseRetriever:
         collection_name: Optional[str] = None,
         google_api_key: Optional[str] = None,
     ):
-
         api_key = (
             google_api_key
             or os.getenv("GOOGLE_API_KEY")
@@ -63,12 +64,25 @@ class EnterpriseRetriever:
             embedding_function=self.embeddings,
         )
 
+        self.relevance_threshold = float(
+            os.getenv(
+                "RETRIEVAL_RELEVANCE_THRESHOLD",
+                str(self.DEFAULT_RELEVANCE_THRESHOLD),
+            )
+        )
+
     def search(
         self,
         query: str,
         top_k: int = 5,
         allowed_departments: Optional[List[str]] = None,
     ) -> List[Tuple[Any, float]]:
+        """
+        Retrieve only semantically relevant documents.
+
+        Chroma returns distance scores where lower is better.
+        Results above the relevance threshold are rejected.
+        """
 
         if not query or not query.strip():
             return []
@@ -90,4 +104,11 @@ class EnterpriseRetriever:
             )
         )
 
-        return results
+        relevant_results = [
+            (document, score)
+            for document, score in results
+            if document is not None
+            and score <= self.relevance_threshold
+        ]
+
+        return relevant_results

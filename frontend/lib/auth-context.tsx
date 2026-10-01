@@ -11,10 +11,12 @@ import {
 import { apiRequest } from "./api";
 
 interface User {
-  name: string;
+  id: number;
   email: string;
+  full_name: string;
   role: string;
   department: string;
+  is_active: boolean;
 }
 
 interface LoginResponse {
@@ -26,9 +28,12 @@ interface LoginResponse {
 }
 
 interface CurrentUserResponse {
-  user_id: number;
+  id: number;
   email: string;
+  full_name: string;
   role: string;
+  department: string;
+  is_active: boolean;
 }
 
 interface AuthContextType {
@@ -64,10 +69,12 @@ export function AuthProvider({
           });
 
         const restoredUser: User = {
-          name: currentUser.email,
+          id: currentUser.id,
           email: currentUser.email,
+          full_name: currentUser.full_name,
           role: currentUser.role,
-          department: "",
+          department: currentUser.department,
+          is_active: currentUser.is_active,
         };
 
         setUser(restoredUser);
@@ -113,10 +120,12 @@ export function AuthProvider({
         });
 
       const loggedInUser: User = {
-        name: currentUser.email,
+        id: currentUser.id,
         email: currentUser.email,
+        full_name: currentUser.full_name,
         role: currentUser.role,
-        department: "",
+        department: currentUser.department,
+        is_active: currentUser.is_active,
       };
 
       setUser(loggedInUser);

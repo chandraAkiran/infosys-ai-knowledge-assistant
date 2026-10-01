@@ -25,7 +25,6 @@ class QueryClassifier:
             "recruitment",
             "policy",
         ],
-
         "Engineering": [
             "api",
             "microservice",
@@ -37,7 +36,6 @@ class QueryClassifier:
             "service",
             "technical",
         ],
-
         "Delivery Operations": [
             "delivery",
             "incident",
@@ -48,7 +46,6 @@ class QueryClassifier:
             "support",
             "operations",
         ],
-
         "PMO": [
             "project",
             "pmo",
@@ -58,7 +55,6 @@ class QueryClassifier:
             "planning",
             "execution",
         ],
-
         "Sales": [
             "sales",
             "client",
@@ -119,19 +115,25 @@ class QueryClassifier:
                 "source": "mcp",
             }
 
-        # Also detect explicit incident IDs.
-        if (
-            "inc-" in query_lower
-            and "incident" in query_lower
-            and any(
-                word in query_lower
-                for word in [
-                    "status",
-                    "update",
-                    "state",
-                ]
-            )
-        ):
+        # -------------------------------------------------
+        # Explicit incident ID + status/update/state
+        #
+        # Example:
+        # "What is the status of INC-1001?"
+        # -------------------------------------------------
+
+        has_incident_id = "inc-" in query_lower
+
+        has_status_keyword = any(
+            word in query_lower
+            for word in [
+                "status",
+                "update",
+                "state",
+            ]
+        )
+
+        if has_incident_id and has_status_keyword:
             return {
                 "intent": "incident_status_lookup",
                 "department": "Delivery Operations",

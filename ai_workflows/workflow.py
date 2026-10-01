@@ -73,12 +73,19 @@ class EnterpriseAIWorkflow:
         result: Dict[str, Any],
     ):
         """
-        Convert MCP tool output into a document-like
-        evidence object so the existing grounded
-        synthesis layer can consume it.
+        Convert MCP tool output into readable evidence
+        so the grounded synthesis layer can produce a
+        natural-language answer.
         """
 
-        content = str(result)
+        content = (
+            f"Incident ID: {result.get('incident_id', 'Unknown')}\n"
+            f"Status: {result.get('status', 'Unknown')}\n"
+            f"Severity: {result.get('severity', 'Unknown')}\n"
+            f"Service: {result.get('service', 'Unknown')}\n"
+            f"Owner: {result.get('owner', 'Unknown')}\n"
+            f"Last updated: {result.get('last_updated', 'Unknown')}"
+        )
 
         return SimpleNamespace(
             page_content=content,
@@ -98,6 +105,7 @@ class EnterpriseAIWorkflow:
         tool_selection: Dict[str, str],
         document_count: int,
     ) -> Dict[str, Any]:
+
         return {
             "classification": classification,
             "allowed_departments": allowed_departments,
@@ -206,6 +214,40 @@ class EnterpriseAIWorkflow:
                 for document, score in retrieved_results
                 if document is not None
             ]
+
+            # -------------------------------------------------
+            # No sufficiently relevant evidence
+            # -------------------------------------------------
+
+            if not documents:
+
+                workflow_info[
+                    "retrieved_document_count"
+                ] = 0
+
+                return {
+                    "answer": (
+                        "I don't have enough approved evidence "
+                        "to answer this question reliably."
+                    ),
+                    "confidence_score": 0.0,
+                    "citations": [],
+                    "recommended_action": (
+                        "Try a question covered by the indexed "
+                        "enterprise knowledge sources, or contact "
+                        "the knowledge owner to add the relevant "
+                        "document."
+                    ),
+                    "validation": {
+                        "is_valid": True,
+                        "issues": [
+                            "No sufficiently relevant evidence "
+                            "was retrieved."
+                        ],
+                        "insufficient_context": True,
+                    },
+                    "workflow": workflow_info,
+                }
 
         # -------------------------------------------------
         # MCP incident-status path
@@ -320,7 +362,7 @@ class EnterpriseAIWorkflow:
                 }
 
             # -------------------------------------------------
-            # Convert MCP result into evidence
+            # Convert MCP result into readable evidence
             # -------------------------------------------------
 
             documents = [
