@@ -2,10 +2,38 @@ from typing import Dict, List
 
 
 # ---------------------------------------------------------
-# ROLE → ALLOWED DEPARTMENTS
+# ROLE / DESIGNATION -> ALLOWED DEPARTMENTS
 # ---------------------------------------------------------
 
 ROLE_PERMISSIONS: Dict[str, List[str]] = {
+    # -----------------------------------------------------
+    # Application roles
+    # -----------------------------------------------------
+
+    "employee": [
+        "Delivery Operations",
+    ],
+
+    "manager": [
+        "Engineering",
+        "Delivery Operations",
+        "PMO",
+        "Human Resources",
+        "Sales",
+    ],
+
+    "admin": [
+        "Engineering",
+        "Delivery Operations",
+        "PMO",
+        "Human Resources",
+        "Sales",
+    ],
+
+    # -----------------------------------------------------
+    # Enterprise job designations
+    # -----------------------------------------------------
+
     "Software Engineer": [
         "Engineering",
         "Delivery Operations",
@@ -106,4 +134,4 @@ class QueryRBACClassifier:
         designation: str,
     ) -> bool:
 
-        return designation in ROLE_PERMISSIONS 
+        return designation in ROLE_PERMISSIONS
