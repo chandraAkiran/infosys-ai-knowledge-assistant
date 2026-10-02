@@ -6,13 +6,15 @@ This folder contains deployment configuration and production deployment notes fo
 
 Platform: Render
 
+The repository is a monorepo, so the Render backend service uses the repository root as its service root.
+
 Build command:
 
 pip install -r backend/requirements.txt
 
 Start command:
 
-uvicorn backend.main:app --host 0.0.0.0 --port 
+cd backend && PYTHONPATH=.. uvicorn main:app --host 0.0.0.0 --port $PORT
 
 ## Frontend
 
