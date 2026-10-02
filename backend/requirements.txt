@@ -13,4 +13,5 @@ python-docx==1.2.0
 google-genai==2.25.0
 langchain-google-genai==4.4.0
 langchain-chroma==1.1.0
-chromadb==1.5.9psycopg[binary]==3.2.10
+chromadb==1.5.9
+psycopg[binary]==3.2.10
