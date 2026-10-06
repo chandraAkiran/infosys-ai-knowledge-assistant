@@ -1117,33 +1117,7 @@ Context-Grounded Response
 - [ ] Monitoring and observability
 
 ---
-
-# 💼 Resume-Ready Project Description
-
-## Infosys AI Knowledge Assistant
-
-**Tech Stack:** Python, FastAPI, Next.js, LangChain, Google Gemini, OpenAI, RAG, ChromaDB, Supabase, PostgreSQL, Vercel, Render
-
-Built and deployed a full-stack **Enterprise AI Knowledge Assistant** using Retrieval-Augmented Generation (RAG), LangChain, LLMs, vector embeddings, semantic search, FastAPI and Next.js.
-
-Developed a modular enterprise document-processing architecture covering **document ingestion, text extraction, chunking, embedding generation, vector storage, semantic retrieval, context construction and LLM-based question answering**.
-
-Deployed the **Next.js frontend on Vercel** and the **FastAPI backend on Render**, integrating AI services, vector search, authentication, database services and cloud-based application components.
-
----
-
-# 📄 Resume Bullet Points
-
-- Built a full-stack **Enterprise AI Knowledge Assistant** using Python, FastAPI, Next.js, LangChain and Retrieval-Augmented Generation.
-- Developed an end-to-end document ingestion pipeline covering text extraction, preprocessing, chunking, embeddings and semantic vector search.
-- Implemented context-grounded question answering by retrieving relevant enterprise knowledge before LLM generation.
-- Designed modular AI workflows for enterprise document retrieval and Generative AI processing.
-- Integrated Gemini/OpenAI, ChromaDB and Supabase into the application architecture.
-- Deployed the Next.js frontend on **Vercel** and FastAPI backend on **Render**.
-- Structured the project into independent frontend, backend, ingestion, AI workflow, deployment and testing modules.
-
----
-
+  
 # 🔗 Project Links
 
 ### 🚀 Live Application
