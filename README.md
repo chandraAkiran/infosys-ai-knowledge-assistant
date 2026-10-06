@@ -920,6 +920,47 @@ Context-Grounded Answer
 The answer is generated using the relevant enterprise document content.
 
 ---
+# 👤 Demo Accounts
+
+The deployed application includes demonstration accounts for testing the authentication, employee, and admin features.
+
+> **Note:** These are demo/test accounts created specifically for this project. They are **not real Infosys accounts or credentials**.
+
+## 👨‍💼 Employee Account
+
+```text
+Email: employee@infosys.com
+Password: password123
+Role: Employee
+```
+
+Use the employee account to test standard user functionality such as accessing the application and interacting with the AI Knowledge Assistant.
+
+---
+
+## 👨‍💻 Admin Account
+
+```text
+Email: admin@infosys.com
+Password: Admin@12345
+Role: Admin
+```
+
+Use the admin account to test administrative functionality available in the application.
+
+---
+
+## 🚀 Try the Demo
+
+Open the deployed application:
+
+https://infosys-ai-knowledge-assistant.vercel.app
+
+Then sign in using either of the demo accounts above.
+
+> ⚠️ **Security Notice:** These credentials are provided only for demonstration and portfolio evaluation. They must not be treated as real Infosys credentials. For a production deployment, demo credentials should be removed and replaced with secure user provisioning, strong passwords, appropriate authorization controls, and proper secret-management practices.
+
+---
 
 # 🏢 Enterprise Use Cases
 
