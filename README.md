@@ -20,10 +20,11 @@
   <a href="https://github.com/chandraAkiran/infosys-ai-knowledge-assistant">
     <strong>💻 GitHub Repository</strong>
   </a>
+  &nbsp;&nbsp; | &nbsp;&nbsp;
   <a href="https://drive.google.com/file/d/1si7K9vlBkVZaZCuBFpMS55HMIvR-N84h/view?usp=sharing">
     <strong>Video Presentation</strong>
   </a>
-  &nbsp;&nbsp; | &nbsp;&nbsp;
+  
 </p>
 
 
