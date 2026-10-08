@@ -1183,9 +1183,13 @@ https://infosys-ai-knowledge-assistant-ifkw.onrender.com
 
 https://github.com/chandraAkiran/infosys-ai-knowledge-assistant
 
-### 💻 Video Presentation
+### 🚀 Video Presentation
 
 https://drive.google.com/file/d/1si7K9vlBkVZaZCuBFpMS55HMIvR-N84h/view?usp=sharing
+
+### 💻 Power Point Presentation
+
+https://docs.google.com/presentation/d/1BR4xn9GgH9nNlri26ksmJAZBlrFbGjgG/edit?usp=sharing&ouid=117693104083008671397&rtpof=true&sd=true
 
 ---
 
