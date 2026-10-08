@@ -22,7 +22,11 @@
   </a>
   &nbsp;&nbsp; | &nbsp;&nbsp;
   <a href="https://drive.google.com/file/d/1si7K9vlBkVZaZCuBFpMS55HMIvR-N84h/view?usp=sharing">
-    <strong>Video Presentation</strong>
+    <strong>🚀 Video Presentation</strong>
+  </a>
+  &nbsp;&nbsp; | &nbsp;&nbsp;
+  <a href="https://docs.google.com/presentation/d/1BR4xn9GgH9nNlri26ksmJAZBlrFbGjgG/edit?usp=sharing&ouid=117693104083008671397&rtpof=true&sd=true">
+    <strong>💻 Power Point Presentation</strong>
   </a>
   
 </p>
